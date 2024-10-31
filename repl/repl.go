@@ -5,11 +5,9 @@ import (
 	"fmt"
 	"os"
 	"strings"
-
-	clicommand "github.com/remcous/bootdev_pokedex/cliCommand"
 )
 
-func StartRepl() {
+func StartRepl(cfg *Config) {
 	scanner := bufio.NewScanner(os.Stdin)
 
 	for {
@@ -20,8 +18,8 @@ func StartRepl() {
 
 		commandName := input[0]
 
-		if cmd, ok := clicommand.GetCommands()[commandName]; ok {
-			err := cmd.Callback()
+		if cmd, ok := GetCommands()[commandName]; ok {
+			err := cmd.Callback(cfg)
 			if err != nil {
 				fmt.Println(err)
 			}

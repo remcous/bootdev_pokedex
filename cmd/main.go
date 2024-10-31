@@ -5,5 +5,7 @@ import (
 )
 
 func main() {
-	repl.StartRepl()
+	cfg := repl.Config{}
+
+	repl.StartRepl(&cfg)
 }

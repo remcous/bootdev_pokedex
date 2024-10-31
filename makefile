@@ -4,12 +4,15 @@ BINARY_NAME=bootdev_pokedex
 # Go build flags
 LDFLAGS=-s -w
 
+# Main file location
+MAIN=cmd/main.go
+
 # Default target
-all: build
+all: build run
 
 # Build the executable
 build:
-	go build -ldflags "$(LDFLAGS)" -o $(BINARY_NAME) main.go
+	go build -ldflags "$(LDFLAGS)" -o $(BINARY_NAME) $(MAIN)
 
 # Clean up the executable
 clean:
@@ -17,6 +20,6 @@ clean:
 
 # Run the application
 run: 
-	go run main.go
+	./$(BINARY_NAME)
 
 .PHONY: all build clean run
