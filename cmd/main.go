@@ -1,11 +1,18 @@
 package main
 
 import (
+	"time"
+
 	"github.com/remcous/bootdev_pokedex/repl"
 )
 
-func main() {
-	cfg := repl.Config{}
+const (
+	clientTimeout = time.Second
+	cacheInterval = 5 * time.Minute
+)
 
-	repl.StartRepl(&cfg)
+func main() {
+	cfg := repl.NewConfig(clientTimeout, cacheInterval)
+
+	repl.StartRepl(cfg)
 }
