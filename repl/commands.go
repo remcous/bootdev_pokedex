@@ -3,6 +3,7 @@ package repl
 import (
 	"errors"
 	"fmt"
+	"math/rand"
 	"os"
 )
 
@@ -18,6 +19,11 @@ func GetCommands() map[string]CliCommand {
 			Name:        "help",
 			Description: "Displays a help message",
 			Callback:    CommandHelp,
+		},
+		"catch": {
+			Name:        "catch <location_name>",
+			Description: "Attempt to catch a pokemon",
+			Callback:    CommandCatch,
 		},
 		"explore": {
 			Name:        "explore <location_name>",
@@ -111,6 +117,31 @@ func CommandExplore(cfg *Config, args ...string) error {
 	fmt.Println("Found Pokemon: ")
 	for _, encounter := range location.PokemonEncounters {
 		fmt.Printf(" - %s\n", encounter.Pokemon.Name)
+	}
+
+	return nil
+}
+
+func CommandCatch(cfg *Config, args ...string) error {
+	if len(args) < 1 {
+		return fmt.Errorf("you must specify pokemon to try and catch")
+	}
+
+	pokemonName := args[0]
+	pokemon, err := cfg.apiClient.GetPokemon(pokemonName)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("Throwing a Pokeball at %s\n", pokemon.Name)
+	caught := rand.Intn(pokemon.BaseExperience) < 40
+
+	if caught {
+		fmt.Printf("%s was caught!\n", pokemon.Name)
+
+		cfg.pokedex[pokemon.Name] = pokemon
+	} else {
+		fmt.Printf("%s escaped!\n", pokemon.Name)
 	}
 
 	return nil
