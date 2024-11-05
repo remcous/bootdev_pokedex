@@ -9,7 +9,7 @@ import (
 type CliCommand struct {
 	Name        string
 	Description string
-	Callback    func(*Config) error
+	Callback    func(*Config, ...string) error
 }
 
 func GetCommands() map[string]CliCommand {
@@ -19,10 +19,10 @@ func GetCommands() map[string]CliCommand {
 			Description: "Displays a help message",
 			Callback:    CommandHelp,
 		},
-		"exit": {
-			Name:        "exit",
-			Description: "Exit the pokedex",
-			Callback:    CommandExit,
+		"explore": {
+			Name:        "explore <location_name>",
+			Description: "Explore a location",
+			Callback:    CommandExplore,
 		},
 		"map": {
 			Name:        "map",
@@ -34,10 +34,15 @@ func GetCommands() map[string]CliCommand {
 			Description: "Display previous map locations",
 			Callback:    CommandMapPrev,
 		},
+		"exit": {
+			Name:        "exit",
+			Description: "Exit the pokedex",
+			Callback:    CommandExit,
+		},
 	}
 }
 
-func CommandHelp(cfg *Config) error {
+func CommandHelp(cfg *Config, _ ...string) error {
 	fmt.Println()
 	fmt.Println("Welcome to the Pokedex!")
 	fmt.Println("Usage:")
@@ -50,42 +55,62 @@ func CommandHelp(cfg *Config) error {
 	return nil
 }
 
-func CommandExit(cfg *Config) error {
+func CommandExit(cfg *Config, _ ...string) error {
 	os.Exit(0)
 	return nil
 }
 
-func CommandMapNext(cfg *Config) error {
-	locationResp, err := cfg.apiClient.GetLocationList(cfg.LocationAreasNext)
+func CommandMapNext(cfg *Config, _ ...string) error {
+	locationAreas, err := cfg.apiClient.GetLocationList(cfg.LocationAreasNext)
 	if err != nil {
 		return err
 	}
 
-	cfg.LocationAreasNext = locationResp.Next
-	cfg.LocationAreasPrev = locationResp.Prev
+	cfg.LocationAreasNext = locationAreas.Next
+	cfg.LocationAreasPrev = locationAreas.Prev
 
-	for _, loc := range locationResp.Results {
+	for _, loc := range locationAreas.Results {
 		fmt.Println(loc.Name)
 	}
 
 	return nil
 }
 
-func CommandMapPrev(cfg *Config) error {
+func CommandMapPrev(cfg *Config, _ ...string) error {
 	if cfg.LocationAreasPrev == nil {
 		return errors.New("you're on the first page")
 	}
 
-	locationResp, err := cfg.apiClient.GetLocationList(cfg.LocationAreasPrev)
+	locationAreas, err := cfg.apiClient.GetLocationList(cfg.LocationAreasPrev)
 	if err != nil {
 		return err
 	}
 
-	cfg.LocationAreasNext = locationResp.Next
-	cfg.LocationAreasPrev = locationResp.Prev
+	cfg.LocationAreasNext = locationAreas.Next
+	cfg.LocationAreasPrev = locationAreas.Prev
 
-	for _, loc := range locationResp.Results {
+	for _, loc := range locationAreas.Results {
 		fmt.Println(loc.Name)
+	}
+
+	return nil
+}
+
+func CommandExplore(cfg *Config, args ...string) error {
+	if len(args) < 1 {
+		return fmt.Errorf("you must specify where to explore")
+	}
+
+	locationName := args[0]
+	location, err := cfg.apiClient.GetLocation(locationName)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("Exploring %s...\n", location.Name)
+	fmt.Println("Found Pokemon: ")
+	for _, encounter := range location.PokemonEncounters {
+		fmt.Printf(" - %s\n", encounter.Pokemon.Name)
 	}
 
 	return nil

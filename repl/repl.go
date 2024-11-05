@@ -17,9 +17,13 @@ func StartRepl(cfg *Config) {
 		input := cleanInput(scanner.Text())
 
 		commandName := input[0]
+		args := []string{}
+		if len(input) > 1 {
+			args = input[1:]
+		}
 
 		if cmd, ok := GetCommands()[commandName]; ok {
-			err := cmd.Callback(cfg)
+			err := cmd.Callback(cfg, args...)
 			if err != nil {
 				fmt.Println(err)
 			}
